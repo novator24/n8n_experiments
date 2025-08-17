@@ -1,0 +1,1573 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v1/video_status.get",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "video_id",
+              "value": "={{ $node[\"Generate video\"].json.data.video_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3376,
+        320
+      ],
+      "id": "94c941f7-3041-4ac6-8bd9-17a12c44e711",
+      "name": "Check video status",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y6A6qFFABbMDyIPL",
+          "name": "HeyGen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cf495f6b-1907-4c10-9d9e-c0d78058d244",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -3184,
+        352
+      ],
+      "id": "1aeb50fb-9116-45f6-8b9e-d4178b286295",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -2976,
+        400
+      ],
+      "id": "a23ea21d-0e3e-48f7-88d0-da07e076edba",
+      "name": "Wait",
+      "webhookId": "95fa102a-b4af-4b22-b727-905f8600a623"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.data.video_url }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -2976,
+        208
+      ],
+      "id": "35a6675f-5ffa-40b9-8547-b1c10391d9f6",
+      "name": "Download video"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "440211885",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "HeyGen video is ready. Generating background..."
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -2528,
+        208
+      ],
+      "id": "4fac5826-6bab-4bc8-8072-f78cb3b9d7b6",
+      "name": "Send a video",
+      "webhookId": "6fb78af2-0875-40bc-9df8-ba2080ec7732",
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -4544,
+        352
+      ],
+      "id": "af301e1c-a502-4209-aec0-7c2089fe93d0",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "google/gemini-2.5-pro",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write a script for a short Reels video:\n\n{{ $json.keyword }}\n\nDirector's idea:\n\n{{ $node['When chat message received'].json.chatInput }}\n\nIn your reply, write only the host's spoken lines. No quotation marks, no line breaks, and no escapable characters. Only text. If the director did not specify the language, then use Russian."
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 10000
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -4336,
+        352
+      ],
+      "id": "031c515b-806d-454e-b26a-086979077be9",
+      "name": "Script generator",
+      "credentials": {
+        "openAiApi": {
+          "id": "DpRTY5fEzIHMSmKl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "440211885",
+        "text": "=Принято в работу: \"{{ $node['When chat message received'].json.chatInput }}\"",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -5280,
+        352
+      ],
+      "id": "b2682666-3cad-4314-aae6-374ac003dab4",
+      "name": "Send a text message",
+      "webhookId": "1522a75b-79e3-4a6b-9090-a18fff051b91",
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -5472,
+        352
+      ],
+      "id": "57354637-81a5-49fb-a543-1d70f0b351f1",
+      "name": "When chat message received",
+      "webhookId": "eac9aacf-e152-4c2b-a048-28a4f66cec75"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "google/gemini-2.5-pro",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=I have a reels video script: \"{{ $('Transcribe audio or video').item.json.text }}\"\n\nAnd main producer's idea: \"{{ $node['When chat message received'].json.chatInput }}\"\n\nI splitted it into {{ $('transcription to parts array').item.json.parts.length }} parts: {{ $('transcription to parts array').item.json.parts.map(k => `\"${k.text.trim()}\"`) }}\n\nGenerate prompts to generate images using Midjourney. Describe the image for each part. Return the result in json in the following format:\n\n{\n   \"scenes\": [\n      {\n        \"part_id\": 0,\n        \"text\": \"...\",\n        \"image_prompt\": \"...\"\n      },\n      {\n        \"part_id\": 1,\n        \"text\": \"...\",\n        \"image_prompt\": \"...\"\n      },\n      ...\n   ]\n}\n\nThe response should only contain json and nothing else."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -544,
+        208
+      ],
+      "id": "d473a3b9-c2d3-41a2-9112-3e62a0621e0f",
+      "name": "Image prompter",
+      "credentials": {
+        "openAiApi": {
+          "id": "DpRTY5fEzIHMSmKl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v2/video/generate",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -3712,
+        320
+      ],
+      "id": "83f3c7e4-aefb-42c2-8a48-bfa79fcb760e",
+      "name": "Generate video",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y6A6qFFABbMDyIPL",
+          "name": "HeyGen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/avatars",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4624,
+        512
+      ],
+      "id": "9067ac60-7053-43f0-b1d9-ab2d43c8ddf1",
+      "name": "Avatar list",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y6A6qFFABbMDyIPL",
+          "name": "HeyGen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.heygen.com/v2/voices",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -4624,
+        672
+      ],
+      "id": "10174066-9f53-48ae-8d3f-f743d327f7dc",
+      "name": "Voices list",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Y6A6qFFABbMDyIPL",
+          "name": "HeyGen"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y -nostdin -hide_banner -i video.mp4 -vn -acodec mp3 audio.mp3"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -2304,
+        208
+      ],
+      "id": "e1166a69-95bd-4f0d-b61b-a51c0a68bc0c",
+      "name": "get audio"
+    },
+    {
+      "parameters": {
+        "resource": "speech",
+        "operation": "speechToText",
+        "additionalOptions": {
+          "numberOfSpeakers": 1
+        },
+        "requestOptions": {}
+      },
+      "type": "@elevenlabs/n8n-nodes-elevenlabs.elevenLabs",
+      "typeVersion": 1,
+      "position": [
+        -1888,
+        208
+      ],
+      "id": "0ad4f7d0-4746-4eb7-871b-e57ba1e3d975",
+      "name": "Transcribe audio or video",
+      "credentials": {
+        "elevenLabsApi": {
+          "id": "MpVomioxpJIz4Kw4",
+          "name": "ElevenLabs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные из входного JSON\nconst inputData = $('Transcribe audio or video').item.json;\nconst words = inputData.words;\n\n// Извлекаем только слова (не пробелы и не audio_event) с их таймингами\nconst wordItems = words.filter(word => word.type === 'word');\n\n// Создаем очищенный текст только из слов (без audio_event)\nconst cleanText = wordItems.map(word => word.text).join(' ');\n\n// Разбиваем текст на части по знакам препинания\nconst textParts = cleanText.split(/[.,!?;:]+/).filter(Boolean);\n\nconst partsWithTiming = [];\nlet currentWordIndex = 0;\n\n// Получаем общую длительность файла\nconst totalDuration = wordItems.length > 0 ? wordItems[wordItems.length - 1].end : 0;\n\n// Для каждой части текста находим соответствующие слова и их тайминги\nfor (let partIndex = 0; partIndex < textParts.length; partIndex++) {\n  const part = textParts[partIndex];\n  \n  // Очищаем часть от лишних пробелов и разбиваем на слова\n  const partWords = part.trim().split(/\\s+/).filter(Boolean);\n  \n  if (partWords.length === 0) continue;\n  \n  // Находим индексы слов этой части в общем массиве слов\n  const partWordIndices = [];\n  let tempIndex = currentWordIndex;\n  \n  for (const partWord of partWords) {\n    // Ищем слово в массиве wordItems начиная с текущей позиции\n    let found = false;\n    for (let i = tempIndex; i < wordItems.length; i++) {\n      // Убираем знаки препинания из слова для сравнения\n      const cleanWord = wordItems[i].text.replace(/[.,!?;:\"'(){}\\[\\]<>@#$%^&*\\-_=+\\\\/|~`…]/g, '');\n      if (cleanWord.toLowerCase() === partWord.toLowerCase()) {\n        partWordIndices.push(i);\n        tempIndex = i + 1;\n        found = true;\n        break;\n      }\n    }\n    if (!found) {\n      console.warn(`Слово \"${partWord}\" не найдено в массиве words`);\n    }\n  }\n  \n  if (partWordIndices.length > 0) {\n    // Определяем start и end для части\n    let startTime, endTime;\n    \n    if (partIndex === 0) {\n      // Первая часть начинается с самого начала\n      startTime = 0;\n    } else {\n      // Последующие части начинаются там, где закончилась предыдущая\n      startTime = partsWithTiming[partsWithTiming.length - 1].end;\n    }\n    \n    if (partIndex === textParts.length - 1) {\n      // Последняя часть заканчивается в конце файла\n      endTime = totalDuration;\n    } else {\n      // Находим начало следующей группы слов\n      const nextPartFirstWordIndex = tempIndex;\n      if (nextPartFirstWordIndex < wordItems.length) {\n        endTime = wordItems[nextPartFirstWordIndex].start;\n      } else {\n        endTime = totalDuration;\n      }\n    }\n    \n    partsWithTiming.push({\n      text: part.trim(),\n      start: startTime,\n      end: endTime,\n      duration: endTime - startTime,\n      wordCount: partWords.length\n    });\n    \n    // Обновляем текущий индекс для следующей части\n    currentWordIndex = partWordIndices[partWordIndices.length - 1] + 1;\n  }\n}\n\nreturn { json: { parts: partsWithTiming } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1216,
+        208
+      ],
+      "id": "499e7eb1-216d-4ac4-b5f5-185e917757d4",
+      "name": "transcription to parts array"
+    },
+    {
+      "parameters": {
+        "fileSelector": "audio.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -2096,
+        208
+      ],
+      "id": "47779a5b-eaf4-47e7-8ec2-02808105080c",
+      "name": "read audio"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nreturn $input.first().json.message.content.scenes.map(s => ({ json: { scene: s }}));"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -224,
+        208
+      ],
+      "id": "21d55f3e-836a-4685-a4d6-70ef6d95644f",
+      "name": "scenes to items"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst durations = $('transcription to parts array').item.json.parts;\n\nconst result = [];\nlet i = 0;\nfor (const item of $input.all()) {\n  result.push({\n    file_name: item.json.fileName,\n    duration: durations[i].duration\n  });\n  i++;\n}\n\nreturn { json: { result }};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        208
+      ],
+      "id": "1524688b-89af-449a-8286-6bc603f2e9fb",
+      "name": "generate data to render background"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nconst text = $input.first().json.result.map(r => `file '${r.file_name}'\\nduration ${r.duration}`).join('\\n');\nconst fileName = 'output.txt';\n\n// Создаем binary данные\nconst binaryData = Buffer.from(text, 'utf8');\n\nreturn [\n  {\n    json: {\n      fileName: fileName\n    },\n    binary: {\n      data: {\n        data: binaryData.toString('base64'),\n        mimeType: 'text/plain',\n        fileName: fileName\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        208
+      ],
+      "id": "725bbb2f-ee82-43fb-af86-d71d9a7ba766",
+      "name": "generate file to render background"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "background.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        208
+      ],
+      "id": "13d1b12b-760d-4d2f-907e-fa8bc061e90f",
+      "name": "save render file"
+    },
+    {
+      "parameters": {
+        "command": "nice -n 10 ffmpeg -y -nostdin -hide_banner -loglevel error \\\n  -stream_loop -1 -i background.mp4 \\\n  -i video.mp4 \\\n  -filter_complex '[1:v]scale=1080:1920,setsar=1,colorkey=0x0000ff:0.3:0.2[fg];[0:v][fg]overlay=shortest=1[out]' \\\n  -map '[out]' -map '1:a?' \\\n  -c:v libx264 -crf 18 -preset veryfast -threads 2 -c:a copy \\\n  \"output.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        208
+      ],
+      "id": "ac1b3dd4-3f2c-4e6a-9577-1bd2590e5205",
+      "name": "mix avatar and background"
+    },
+    {
+      "parameters": {
+        "command": "ffmpeg -y -nostdin -hide_banner -f concat -safe 0 -i background.txt -vf \"scale=-1:1920,crop=1080:1920:(iw-1080)/2:0\" -r 30 -c:v libx264 -pix_fmt yuv420p background.mp4"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1280,
+        208
+      ],
+      "id": "a261677a-4c88-4cc5-a4df-7fc2e9c92fd6",
+      "name": "mix images"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const video_inputs = [];\nvideo_inputs.push({\n  \"character\": {\n    \"type\": \"avatar\",\n    \"avatar_id\": \"42bf901fcab54935915a291c7206064c\", // вставьте avatar_id сюда\n    \"avatar_style\": \"normal\",\n    \"matting\": true,\n    \"offset\": {\n      \"x\": 0,\n      \"y\": 0\n    },\n    \"scale\": 1\n  },\n  \"voice\": {\n    \"type\": \"text\",\n    \"input_text\": $('Script generator').item.json.message.content,\n    \"voice_id\": \"91f2ee24f76044619c34cb60a038b0d6\", // вставьте voice_id сюда\n    \"speed\": 1.1,\n    \"elevenlabs_settings\": {\n      \"model\": \"eleven_multilingual_v2\"\n    }\n  },\n  \"background\": {\n    \"type\": \"color\",\n    \"value\": \"#0000ff\"\n  }\n});\nreturn {\n  \"video_inputs\": video_inputs,\n  \"dimension\": {\n    \"width\": 720,\n    \"height\": 1280\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3968,
+        320
+      ],
+      "id": "f1892a8e-8e7b-4f50-b4fe-218656ea29e2",
+      "name": "video generation settings"
+    },
+    {
+      "parameters": {
+        "jsCode": "const list = $json.message.content;\n\nreturn list.map(k => ({ json: { keyword: k } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -4736,
+        352
+      ],
+      "id": "5d67eb0c-d95a-4069-a948-f79d758236d3",
+      "name": "ideas transform"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "video.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        208
+      ],
+      "id": "1660b4cd-a1fb-4a8a-b144-f6ba5e7080fd",
+      "name": "save video to file"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные от предыдущей ноды\nconst inputData = $('Transcribe audio or video').item.json;\n\n// Проверяем структуру данных\nconsole.log('Input structure:', typeof inputData, Array.isArray(inputData));\n\nlet elevenlabsData;\n\n// Пробуем разные варианты структуры данных\nif (Array.isArray(inputData)) {\n  elevenlabsData = inputData;\n} else if (inputData.body && Array.isArray(inputData.body)) {\n  elevenlabsData = inputData.body;\n} else if (inputData.data && Array.isArray(inputData.data)) {\n  elevenlabsData = inputData.data;\n} else {\n  // Если данные пришли напрямую как объект\n  elevenlabsData = [inputData];\n}\n\nconsole.log('Processed elevenlabs data:', elevenlabsData);\n\n// Извлекаем массив words из первого элемента\nconst wordsArray = elevenlabsData[0].words;\n\n// Фильтруем только слова (исключаем spacing и audio_event)\nconst wordsOnly = wordsArray.filter(item => item.type === 'word');\n\nconsole.log('Filtered words count:', wordsOnly.length);\n\n// Функция конвертации времени в SRT формат\nfunction secondsToSrtTime(seconds) {\n  const hours = Math.floor(seconds / 3600);\n  const minutes = Math.floor((seconds % 3600) / 60);\n  const secs = Math.floor(seconds % 60);\n  const ms = Math.floor((seconds % 1) * 1000);\n  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;\n}\n\n// Генерируем SRT контент для каждого слова\nlet srtContent = '';\nwordsOnly.forEach((word, index) => {\n  const startTime = secondsToSrtTime(word.start);\n  const endTime = secondsToSrtTime(word.end);\n  \n  srtContent += `${index + 1}\\n`;\n  srtContent += `${startTime} --> ${endTime}\\n`;\n  srtContent += `${word.text}\\n\\n`;\n});\n\nconst binaryData = Buffer.from(srtContent, 'utf8');\n\nreturn [\n  {\n    json: {\n      fileName: 'subtitles.srt',\n      srtContent: srtContent,\n      totalWords: wordsOnly.length,\n      language: elevenlabsData[0].language_code || 'unknown',\n      fullText: elevenlabsData[0].text || ''\n    },\n    binary: {\n      data: {\n        data: binaryData.toString('base64'),\n        mimeType: 'text/plain',\n        fileName: 'subtitles.srt'\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1648,
+        208
+      ],
+      "id": "2eef9e93-126f-4785-8cba-3de06f250b29",
+      "name": "generate subtitles file"
+    },
+    {
+      "parameters": {
+        "command": "nice -n 10 ffmpeg -y -nostdin -hide_banner -loglevel error \\\n  -i output.mp4 \\\n  -vf \"subtitles=subtitles.srt:force_style='FontName=DejaVu Sans,FontSize=20,PrimaryColour=&Hffffff,OutlineColour=&H000000,Outline=2,Alignment=2,MarginV=30'\" \\\n  -c:v libx264 -crf 18 -preset veryfast -threads 2 \\\n  -c:a copy \\\n  \"result.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        208
+      ],
+      "id": "cbdb12af-d5d8-4367-a52f-d955e595fac6",
+      "name": "render subtitles"
+    },
+    {
+      "parameters": {
+        "fileSelector": "result.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1872,
+        208
+      ],
+      "id": "a6dbc01c-8e41-4db3-b01a-baf725975e0d",
+      "name": "read video with subtitles"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "subtitles.srt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -1424,
+        208
+      ],
+      "id": "ca0b38bd-627b-436b-9474-59d97d9f8aa2",
+      "name": "save subtitles file"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "google/gemini-2.5-pro",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write 3 catchy hook titles for Reels video for the director's task:\n\n{{ $node['When chat message received'].json.chatInput }}\n\nReturn the ideas as a JSON array of strings, sorted by interest from most engaging to least. The response must contain nothing else."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -5120,
+        352
+      ],
+      "id": "8c3d9272-bf64-4191-8bbb-c96d474e3e6f",
+      "name": "Get titles",
+      "credentials": {
+        "openAiApi": {
+          "id": "DpRTY5fEzIHMSmKl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Add a new field called 'myNewField' to the JSON of the item\n$input.item.json.fileName = Math.random().toString(36).substring(2);\n\nreturn $input.item;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        208
+      ],
+      "id": "074cca35-dc1d-4c5b-86dc-2c22d0cea286",
+      "name": "Generate random image name"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "={{ $json.fileName }}.png",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        480,
+        208
+      ],
+      "id": "75de2c83-ccbc-482f-8e87-9510695624fe",
+      "name": "save images to files"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "6d599738-2e3a-41dc-aa09-92b25b9cb051",
+        "responseMode": "lastNode",
+        "responseData": "firstEntryBinary",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        1024
+      ],
+      "id": "1a3bda4b-74de-468d-b82e-dd9bf4e2d1c9",
+      "name": "generate image endpoint",
+      "webhookId": "6d599738-2e3a-41dc-aa09-92b25b9cb051"
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "model": "gpt-image-1",
+        "prompt": "={{ $json.body.prompt }}",
+        "options": {
+          "quality": "low",
+          "size": "1024x1536"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -288,
+        1024
+      ],
+      "id": "a249cff5-06e8-4fbd-93f9-3324a9829ec5",
+      "name": "Generate an image",
+      "retryOnFail": false,
+      "maxTries": 5,
+      "credentials": {
+        "openAiApi": {
+          "id": "4PMykObgr7BHh8mW",
+          "name": "OpenAi account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\nfor (const item of $input.all()) {\n  item.json.myNewField = 1;\n}\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        992
+      ],
+      "id": "2124293d-80bd-4ee8-a1a3-67e4ae1b7f6e",
+      "name": "result"
+    },
+    {
+      "parameters": {
+        "amount": 10
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -64,
+        1120
+      ],
+      "id": "805e47d2-6e82-46d1-aa6c-e99c2342ff5e",
+      "name": "Wait 10 seconds",
+      "webhookId": "001a535c-6613-4bce-b2f3-0457af7f894b"
+    },
+    {
+      "parameters": {
+        "chatId": "440211885",
+        "text": "=Images successfully generated",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        288,
+        0
+      ],
+      "id": "e4290cf7-080d-487f-a9c1-f3ee8774dba8",
+      "name": "Images generated message",
+      "webhookId": "997907e6-f20d-4a97-87b0-3eba6d0eb558",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "440211885",
+        "text": "=Starting image generation...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "6dc8671b-3582-4b46-a010-d78176b04527",
+      "name": "starting image generation message",
+      "webhookId": "8817d4c7-61b8-4cfc-bcfa-fcf42a581990",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "440211885",
+        "text": "=Script is ready:\n\n{{ $('Script generator').item.json.message.content }}\n\nStarting video generation...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -3984,
+        128
+      ],
+      "id": "1e95e3a4-9d70-4a51-9750-c80e141417a7",
+      "name": "script is ready message",
+      "webhookId": "9888ef03-b67a-4b54-87ab-83c6515c093d",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "440211885",
+        "text": "=Video title is ready:\n\n{{ $json.keyword }}\n\nStarting script generation...",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -4304,
+        128
+      ],
+      "id": "313d0919-90fd-47af-aa84-9026d1544f8a",
+      "name": "title is ready message",
+      "webhookId": "1fc20163-dea8-4d7c-be45-016a3d75095d",
+      "executeOnce": true,
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.piapi.ai/api/v1/task",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"model\": \"music-u\",\n    \"task_type\": \"generate_music\",\n    \"input\": {\n        \"negative_tags\": \"\",\n        \"gpt_description_prompt\": \"{{ $node['song prompter'].json.message.content.song_prompt }}\",\n        \"lyrics_type\": \"instrumental\",\n        \"seed\": -25443934\n    }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -720,
+        208
+      ],
+      "id": "c0633daf-fd33-4824-bd4a-7ef4719def8b",
+      "name": "Generate udio song",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eJCj2U4lRyV8aM1v",
+          "name": "PiApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.piapi.ai/api/v1/task/{{ $node[\"Generate udio song\"].json.data.task_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2128,
+        208
+      ],
+      "id": "5271ae8c-87e8-435a-91e7-c97bd8227c71",
+      "name": "Get udio song",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "eJCj2U4lRyV8aM1v",
+          "name": "PiApi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b2e87263-2fbf-4031-9663-8221a7640a88",
+              "leftValue": "={{ $json.data.status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2320,
+        208
+      ],
+      "id": "2875a3a6-8b99-4cf3-ac20-60eea9bd8969",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        2560,
+        384
+      ],
+      "id": "81c45cd4-eacb-46eb-93d5-71539b9d52ee",
+      "name": "Wait1",
+      "webhookId": "95fa102a-b4af-4b22-b727-905f8600a623"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "music.mp3",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2784,
+        192
+      ],
+      "id": "06f6aab9-f5d2-4f9f-aa81-f7c959978df0",
+      "name": "save music file"
+    },
+    {
+      "parameters": {
+        "url": "={{ $node[\"Get udio song\"].json.data.output.songs[0].song_path }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2560,
+        192
+      ],
+      "id": "9ba6b3a6-e59e-4b3f-93af-01c905080f68",
+      "name": "download song"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5678/webhook/6d599738-2e3a-41dc-aa09-92b25b9cb051",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.scene.image_prompt }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        0,
+        208
+      ],
+      "id": "bd6f49fd-bfe6-43a3-a1b8-1dfbb83d3052",
+      "name": "image generation web hook request"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "google/gemini-2.5-pro",
+          "mode": "id"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=I have a reels video script: \"{{ $('Transcribe audio or video').item.json.text }}\"\n\nAnd main producer's idea: \"{{ $node['When chat message received'].json.chatInput }}\"\n\nGenerate prompt to generate intsrumental soundtrack song using Suno/Udio. Soundtrack should fit with script and topic and easy to voice over it. Prompt should be in english. Return the result in json in the following format:\n\n{\n   \"song_prompt\": \"...\"\n}\n\nThe response should only contain json and nothing else."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1.8,
+      "position": [
+        -1040,
+        208
+      ],
+      "id": "051f7ef6-8ba5-497f-9300-6ee3c0988df9",
+      "name": "song prompter",
+      "credentials": {
+        "openAiApi": {
+          "id": "DpRTY5fEzIHMSmKl",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "nice -n 10 ffmpeg -y -nostdin -hide_banner -loglevel error \\\n  -i result.mp4 \\\n  -ss 00:01:00 -i music.mp3 \\\n  -filter_complex '[1:a]volume=-25dB[music];[0:a][music]amix=inputs=2:duration=first[audio]' \\\n  -map '0:v' -map '[audio]' \\\n  -c:v libx264 -crf 18 -preset veryfast -threads 2 -c:a aac \\\n  \"final.mp4\""
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2992,
+        192
+      ],
+      "id": "e11ccf4d-6ff7-4e87-94a5-64219898ffbf",
+      "name": "mix video and music"
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "440211885",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "Video without music is ready!"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2128,
+        0
+      ],
+      "id": "97c7e3a0-fda8-4e2b-97a5-c4dc29150ede",
+      "name": "send video without music",
+      "webhookId": "7b8be13b-f2a2-477d-bdb5-b85ad9506f89",
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendVideo",
+        "chatId": "440211885",
+        "binaryData": true,
+        "additionalFields": {
+          "caption": "Video is ready!"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        3408,
+        192
+      ],
+      "id": "4b996270-351c-409e-9d8a-2a46a979894e",
+      "name": "send final video",
+      "webhookId": "7b8be13b-f2a2-477d-bdb5-b85ad9506f89",
+      "credentials": {
+        "telegramApi": {
+          "id": "WVXbeUN2hbZQ5r2G",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "final.mp4",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        3200,
+        192
+      ],
+      "id": "7844b7c1-884a-4a77-a08a-a5d6f277e585",
+      "name": "read final video"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Check video status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Download video",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Check video status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download video": {
+      "main": [
+        [
+          {
+            "node": "save video to file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Script generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "title is ready message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Script generator": {
+      "main": [
+        [
+          {
+            "node": "video generation settings",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "script is ready message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Get titles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image prompter": {
+      "main": [
+        [
+          {
+            "node": "scenes to items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate video": {
+      "main": [
+        [
+          {
+            "node": "Check video status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get audio": {
+      "main": [
+        [
+          {
+            "node": "read audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transcribe audio or video": {
+      "main": [
+        [
+          {
+            "node": "generate subtitles file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "transcription to parts array": {
+      "main": [
+        [
+          {
+            "node": "song prompter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read audio": {
+      "main": [
+        [
+          {
+            "node": "Transcribe audio or video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "scenes to items": {
+      "main": [
+        [
+          {
+            "node": "starting image generation message",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "image generation web hook request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate data to render background": {
+      "main": [
+        [
+          {
+            "node": "generate file to render background",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate file to render background": {
+      "main": [
+        [
+          {
+            "node": "save render file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save render file": {
+      "main": [
+        [
+          {
+            "node": "mix images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mix avatar and background": {
+      "main": [
+        [
+          {
+            "node": "render subtitles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mix images": {
+      "main": [
+        [
+          {
+            "node": "mix avatar and background",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a video": {
+      "main": [
+        [
+          {
+            "node": "get audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "video generation settings": {
+      "main": [
+        [
+          {
+            "node": "Generate video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ideas transform": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save video to file": {
+      "main": [
+        [
+          {
+            "node": "Send a video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate subtitles file": {
+      "main": [
+        [
+          {
+            "node": "save subtitles file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "render subtitles": {
+      "main": [
+        [
+          {
+            "node": "read video with subtitles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read video with subtitles": {
+      "main": [
+        [
+          {
+            "node": "send video without music",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get udio song",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save subtitles file": {
+      "main": [
+        [
+          {
+            "node": "transcription to parts array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get titles": {
+      "main": [
+        [
+          {
+            "node": "ideas transform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate random image name": {
+      "main": [
+        [
+          {
+            "node": "save images to files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save images to files": {
+      "main": [
+        [
+          {
+            "node": "generate data to render background",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "generate image endpoint": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate an image": {
+      "main": [
+        [
+          {
+            "node": "result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 10 seconds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10 seconds": {
+      "main": [
+        [
+          {
+            "node": "Generate an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate udio song": {
+      "main": [
+        [
+          {
+            "node": "Image prompter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get udio song": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "download song",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Get udio song",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "download song": {
+      "main": [
+        [
+          {
+            "node": "save music file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "image generation web hook request": {
+      "main": [
+        [
+          {
+            "node": "Generate random image name",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Images generated message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "song prompter": {
+      "main": [
+        [
+          {
+            "node": "Generate udio song",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save music file": {
+      "main": [
+        [
+          {
+            "node": "mix video and music",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "mix video and music": {
+      "main": [
+        [
+          {
+            "node": "read final video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "read final video": {
+      "main": [
+        [
+          {
+            "node": "send final video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "afefc677-6498-4ddf-9659-5538ad43d126",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46e1d9181a1351d844cdacfcb89709078674caff601416869a20a79924f3edfc"
+  },
+  "id": "kNE2lr5wZlSYfDtp",
+  "tags": []
+}
