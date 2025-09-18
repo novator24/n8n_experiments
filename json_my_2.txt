@@ -1,0 +1,353 @@
+{
+  "name": "My_2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "183b5b27-b298-4f0f-aec0-3be37fda4b7b",
+      "name": "Telegram Trigger",
+      "webhookId": "054c9b4f-8c35-4ffd-be22-490d05c9e214",
+      "credentials": {
+        "telegramApi": {
+          "id": "s3ul9sgSR59hoO80",
+          "name": "Creds PRO_VIBE_BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e7987986-6dbc-497b-8cd9-b546119dc700",
+              "name": "chat_id",
+              "value": "={{ $json.message.chat.id }}",
+              "type": "number"
+            },
+            {
+              "id": "59797ce1-8c3f-404c-9100-db73f6f196b5",
+              "name": "message_text",
+              "value": "={{ $json.message.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "73333651-a74a-4d9a-af5f-ea56dd8d4839",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message_text }}",
+        "options": {
+          "systemMessage": "Отвечай как дружелюбный помощник магазина цветов. Помогай покупателям подобрать букет, отвечай на вопросы про оплату, доставку, ассортимент и цены. Будь кратким, вежливым и информативным. Купить можно только один цветок в одни руки.  Условия доставки - её нет. Способы оплаты - только наличные. Ассортимент - только ромашки. Прайс - достаточно сказать спасибо."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "49bd99f8-5a1d-478c-a7fd-5714c49629c1",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.chat_id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        432,
+        208
+      ],
+      "id": "0039565d-ad5c-48e4-955e-06ebddc567c8",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bce8c1f6-5752-499a-a8a7-6d25308f00d8",
+              "name": "error",
+              "value": "={{ $json.error }}",
+              "type": "string"
+            },
+            {
+              "id": "b00b446e-ff50-488b-859f-fc7b442f56b5",
+              "name": "message_text",
+              "value": "={{ $json.message_text }}",
+              "type": "string"
+            },
+            {
+              "id": "3c3ded53-31d3-43dd-8c97-a045455d67b4",
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        96
+      ],
+      "id": "953062eb-c9d2-4747-9ad4-d73d0b9fb6b3",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "=Ошибка -  {{ $json.error }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        96
+      ],
+      "id": "b0eeb48e-9edd-4665-97f6-88d986c64eb4",
+      "name": "Send a text message",
+      "webhookId": "4c55ab09-c55c-4cf1-bf83-7eefcc7fa419",
+      "credentials": {
+        "telegramApi": {
+          "id": "s3ul9sgSR59hoO80",
+          "name": "Creds PRO_VIBE_BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        288,
+        208
+      ],
+      "id": "ef8ff273-1c92-4d92-9975-db16c11c974f",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "pzR62pkOXGET3Hxk",
+          "name": "FREE OpenRouter"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2da7a0ed-7b89-4f86-976c-4ed90685aca7",
+              "name": "output",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            },
+            {
+              "id": "68992a25-073d-4eb3-a258-044df9ba0f55",
+              "name": "chat_id",
+              "value": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        768,
+        -96
+      ],
+      "id": "eeb8341a-2494-4303-a014-e50b7d3ff0bd",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        -96
+      ],
+      "id": "0bcd3534-7e02-493b-81f1-d24b15a72ea5",
+      "name": "Send a text message1",
+      "webhookId": "a4512d69-04ad-4d7b-afa1-c258384186c6",
+      "credentials": {
+        "telegramApi": {
+          "id": "s3ul9sgSR59hoO80",
+          "name": "Creds PRO_VIBE_BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolSerpApi",
+      "typeVersion": 1,
+      "position": [
+        576,
+        208
+      ],
+      "id": "a5a80d4a-e741-4f6a-b4e7-c6b6f4a796de",
+      "name": "SerpAPI",
+      "credentials": {
+        "serpApi": {
+          "id": "SHgSySqnBEJ0pDWi",
+          "name": "google SerpAPI"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SerpAPI": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "cPMEwpqMs0hvjI30"
+  },
+  "versionId": "a29f97c6-e060-44e1-bbea-478e31bfc67d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b85f0d09f3d863b4b665ea0e3475dac5af387c16ba8aaf52f137a98c26bd5361"
+  },
+  "id": "cPMEwpqMs0hvjI30",
+  "tags": []
+}
